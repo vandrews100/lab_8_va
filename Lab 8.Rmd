@@ -55,8 +55,8 @@ df_loc <- oil_spills %>%
 
 colnames(df_loc) <- c("latitude","longitude","net_loss")
 
-oil_sf <- st_as_sf(df_loc, coords = c("longitude","latitude"), crs = 4326)
-
+oil_sf <- st_as_sf(df_loc, coords = c("longitude","latitude"), crs = 4326) #convert to simple features for use in leaflet
+ 
 
 leaflet(oil_sf) %>% 
   addTiles() %>% 
@@ -68,7 +68,32 @@ leaflet(oil_sf) %>%
 
 ```{r}
 
+states <- st_read(dsn = ".", layer = "states")
 
+tex_border <- states %>% 
+  filter(STATE_NAME == "Texas") %>%
+  st_transform(4326)
+
+plot(tex_border)
+
+tm_shape(tex_border) +
+  tm_polygons() +
+  tm_shape(oil_sf) +
+  tm_dots(size = 0.3)
+
+```
+
+#### Convert the data to spatial point patterns (combination of point data and the bounding window)
+
+```{r}
+
+spill_sp <- as(oil_sf, "Spatial")
+spill_ppp <- as(spill_sp, "ppp") #convert to point pattern for point pattern analysis
+
+tx_sp <- as(tex_border, "Spatial")
+tx_owin <- as(tx_sp, "owin")
+
+all_ppp <- ppp()
 
 ```
 
