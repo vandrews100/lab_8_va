@@ -1,0 +1,74 @@
+---
+title: "Lab 8"
+author: "Vaughan Andrews"
+date: "3/8/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load_packages, include=FALSE}
+
+library(tidyverse)
+library(sf)
+library(tmap)
+library(leaflet)
+library(spatstat)
+library(maptools)
+library(corrplot)
+
+```
+
+```{r load_data}
+
+oil_spills <- read.csv("oil_spills.csv")
+
+```
+
+#### Column graph of Texas oil spills
+
+```{r}
+
+df <- oil_spills %>% 
+  filter(`Accident.State` =="TX" & `Accident.Year` < 2017) %>% 
+  group_by(`Accident.Year`) %>% 
+  summarise(Loss = sum(`Net.Loss..Barrels.`))
+
+colnames(df) <- c("Year","Loss")
+
+ggplot(df, aes(x = Year, y = Loss))+
+  geom_col() +
+  theme_classic()
+         
+
+```
+
+#### Leaflet plot of spill locations in TX in 2016
+
+```{r}
+
+df_loc <- oil_spills %>% 
+  filter(`Accident.State` == "TX", `Accident.Year` == 2016) %>% 
+  select(Latitude,Longitude, `Net.Loss..Barrels.`)
+
+colnames(df_loc) <- c("latitude","longitude","net_loss")
+
+oil_sf <- st_as_sf(df_loc, coords = c("longitude","latitude"), crs = 4326)
+
+
+leaflet(oil_sf) %>% 
+  addTiles() %>% 
+  addMarkers()
+
+```
+
+#### tmap plot with the Texas state shapefile
+
+```{r}
+
+
+
+```
+
