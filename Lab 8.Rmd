@@ -93,7 +93,55 @@ spill_ppp <- as(spill_sp, "ppp") #convert to point pattern for point pattern ana
 tx_sp <- as(tex_border, "Spatial")
 tx_owin <- as(tx_sp, "owin")
 
-all_ppp <- ppp()
+all_ppp <- ppp(spill_ppp$x, spill_ppp$y, window = tx_owin)
+
+plot(density(all_ppp, sigma = 0.3)) #use with caution
 
 ```
 
+#### Quadrat test for spatial evenness
+
+```{r}
+
+oil_qt <- quadrat.test(all_ppp, nx = 5, ny = 5) #5 regions horizontally and vertically
+oil_qt #null hypothesis is complete spatial randomness (CSR), conlude that the data are NOT evenly distributed
+
+plot(all_ppp)
+plot(oil_qt, add = TRUE, cex = 0.4) #plots the quadrats (shows actual counts, expected counts, std measure of difference)
+
+```
+
+#### G-function for Nearest Neighbor Analysis
+
+```{r}
+
+r <- seq(0,1, by = 0.01) #choose this range to start with but you'll have to change depending on data
+
+oil_gfun <- envelope(all_ppp, fun = Gest, r = r, nsim = 100) #the entire space dataset, using the G-estimates for G-function, 100 simulations
+
+ggplot(oil_gfun, aes(x = r, y = obs)) + #our actual data
+  geom_line(color = "black") +
+  geom_line(aes(x = r, y = theo), color = "red") + #modeled CSR data, theo comes from the envelope function
+  theme_classic()
+```
+
+#### Nearest neighbor using the L-function (Ripley's K, standardized), more advanced analysis than G (radius vs line for NN)
+
+```{r}
+
+r2 <- seq(0,5, by = 0.5) #different range because allison played around first
+
+oil_lfun <- envelope(all_ppp, fun = Lest, r = r2, nsim = 10, global = TRUE) #include global to include all observations
+
+ggplot(oil_lfun, aes(x = r2, y = obs)) +
+  geom_line(color = "black") +
+  geom_line(aes(x = r2, y = theo), color = "blue") +
+  theme_classic()
+
+```
+
+Four different ways to look at spatial distribution.
+1. Look at data
+2. Quadrat analysis
+3. G function
+4. L function
